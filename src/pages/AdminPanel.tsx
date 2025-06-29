@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getSupabaseClient } from '@/lib/supabaseClient';
+import { supabase } from '@/lib/supabaseClient';
 import { getUser } from '@/utils/auth';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
@@ -36,7 +36,7 @@ const AdminPanel: React.FC = () => {
 
   const fetchPendingEvents = async () => {
     setLoading(true);
-    const supabase = await getSupabaseClient();
+
     const { data, error } = await supabase
       .from('events')
       .select('*')
@@ -51,7 +51,7 @@ const AdminPanel: React.FC = () => {
   };
 
   const handleApprove = async (eventId: string) => {
-    const supabase = await getSupabaseClient();
+
     const { error } = await supabase
       .from('events')
       .update({ is_approved: true })
@@ -65,7 +65,7 @@ const AdminPanel: React.FC = () => {
   };
 
   const handleReject = async (eventId: string) => {
-    const supabase = await getSupabaseClient();
+
     const { error } = await supabase
       .from('events')
       .delete()

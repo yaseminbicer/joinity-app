@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getSupabaseClient } from '@/lib/supabaseClient';
+import { supabase } from '@/lib/supabaseClient';
 import { getUser } from '@/utils/auth';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
@@ -31,7 +31,7 @@ const AdminModeration: React.FC = () => {
 
   const fetchAllEvents = async () => {
     setLoading(true);
-    const supabase = await getSupabaseClient();
+
     const { data, error } = await supabase.from('events').select('id,title,description,image,is_approved');
     if (error) {
       toast({ title: 'Hata', description: error.message, variant: 'destructive' });
@@ -42,7 +42,7 @@ const AdminModeration: React.FC = () => {
   };
 
   const handleDelete = async (eventId: string) => {
-    const supabase = await getSupabaseClient();
+
     const { error } = await supabase.from('events').delete().eq('id', eventId);
     if (error) {
       toast({ title: 'Hata', description: error.message, variant: 'destructive' });

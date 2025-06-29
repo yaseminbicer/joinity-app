@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { getSupabaseClient } from '@/lib/supabaseClient';
+import { supabase } from '@/lib/supabaseClient';
 import { Button } from '@/components/ui/button';
 
 interface AuthModalProps {
@@ -14,6 +14,19 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuccess })
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const emailInputRef = React.useRef<HTMLInputElement>(null);
+
+  // Modal açıldığında veya giriş/kayıt geçişlerinde inputları sıfırla ve focus'u ayarla
+  React.useEffect(() => {
+    if (isOpen) {
+      setEmail('');
+      setPassword('');
+      setError(null);
+      setTimeout(() => {
+        emailInputRef.current?.focus();
+      }, 100);
+    }
+  }, [isOpen, isLogin]);
 
   if (!isOpen) return null;
 
@@ -22,7 +35,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuccess })
     setLoading(true);
     setError(null);
     try {
-      const supabase = await getSupabaseClient();
+
       if (isLogin) {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
@@ -40,8 +53,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuccess })
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
-      <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-8 relative">
+    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50 min-h-screen">
+      <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-8 relative h-auto max-h-[90vh] overflow-auto">
         <button
           className="absolute top-2 right-2 text-gray-400 hover:text-gray-700"
           onClick={onClose}
@@ -53,6 +66,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuccess })
         </h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
+            ref={emailInputRef}
             type="email"
             className="w-full border rounded px-3 py-2"
             placeholder="E-posta"

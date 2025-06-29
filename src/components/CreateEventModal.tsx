@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { getSupabaseClient } from '@/lib/supabaseClient';
+import { supabase } from '@/lib/supabaseClient';
 import { getUser } from '@/utils/auth';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -44,7 +44,7 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onClose, on
 
   useEffect(() => {
     (async () => {
-      const supabase = await getSupabaseClient();
+
       const { data } = await supabase.from('categories').select('*').order('name');
       setCategories(data || []);
     })();
@@ -73,7 +73,7 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onClose, on
       return;
     }
     try {
-      const supabase = await getSupabaseClient();
+
       // Adresi koordinata çevir
       let location_lat = null;
       let location_lng = null;
@@ -95,10 +95,10 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onClose, on
           location_lat,
           location_lng,
           category_id: formData.category_id ? Number(formData.category_id) : null,
-
           maxAttendees: formData.maxAttendees ? Number(formData.maxAttendees) : null,
           image: formData.image,
           is_approved: false,
+          organizer: user?.email || null,
         }
       ]);
       if (error) throw error;

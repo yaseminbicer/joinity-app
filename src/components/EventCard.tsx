@@ -3,6 +3,7 @@ import React from 'react';
 import { Calendar, MapPin, Users, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import EventMap from './EventMap';
 
 import type { Event } from "../types/Event";
 
@@ -13,6 +14,8 @@ interface EventCardProps {
   onAttendToggle: (eventId: string) => void;
   isAuth: boolean;
 }
+
+import { Link } from 'react-router-dom';
 
 const EventCard: React.FC<EventCardProps> = ({ event, attendees, isAttending, onAttendToggle, isAuth }) => {
   const formatDate = (dateString: string) => {
@@ -37,7 +40,8 @@ const EventCard: React.FC<EventCardProps> = ({ event, attendees, isAttending, on
   };
 
   return (
-    <Card className="group hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 border-0 shadow-lg bg-white overflow-hidden">
+    <Link to={`/event/${event.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+        <Card className="group hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 border-0 shadow-lg bg-white overflow-hidden cursor-pointer">
       {/* Event Image */}
       <div className="relative h-48 overflow-hidden">
         {event.image ? (
@@ -92,6 +96,12 @@ const EventCard: React.FC<EventCardProps> = ({ event, attendees, isAttending, on
             <MapPin className="h-4 w-4 mr-2 text-red-500" />
             <span className="text-sm truncate">{event.location}</span>
           </div>
+          {/* Event Map */}
+          {event.location_lat && event.location_lng && (
+            <div className="my-2 rounded overflow-hidden" style={{ height: 180 }}>
+              <EventMap events={[event]} />
+            </div>
+          )}
 
           {/* Attendees */}
           <div className="flex items-center text-gray-600">
@@ -125,6 +135,7 @@ const EventCard: React.FC<EventCardProps> = ({ event, attendees, isAttending, on
         </div>
       </CardContent>
     </Card>
+    </Link>
   );
 };
 

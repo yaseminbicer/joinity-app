@@ -4,7 +4,7 @@ import { Calendar, User, Search, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import AuthModal from '@/components/AuthModal';
-import { getSupabaseClient } from '@/lib/supabaseClient';
+import { supabase } from '@/lib/supabaseClient';
 
 const Header = () => {
   const [authModalOpen, setAuthModalOpen] = useState(false);
@@ -13,7 +13,7 @@ const Header = () => {
   useEffect(() => {
     let listener: any;
     (async () => {
-      const supabase = await getSupabaseClient();
+
       await supabase.auth.getSession().then(({ data }) => setUser(data.session?.user || null));
       listener = supabase.auth.onAuthStateChange((_event, session) => {
         setUser(session?.user || null);
@@ -25,7 +25,6 @@ const Header = () => {
   }, []);
 
   const handleLogout = async () => {
-    const supabase = await getSupabaseClient();
     await supabase.auth.signOut();
     setUser(null);
   };

@@ -4,7 +4,7 @@ import EventCard from './EventCard';
 import { Calendar, Filter, Grid, List, MapPin, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { getSupabaseClient } from '@/lib/supabaseClient';
+import { supabase } from '@/lib/supabaseClient';
 import { toast } from '@/hooks/use-toast';
 import { getUser } from '@/utils/auth';
 import type { Event } from "../types/Event";
@@ -28,8 +28,9 @@ const EventList = () => {
   // Kategorileri çek
   useEffect(() => {
     (async () => {
-      const supabase = await getSupabaseClient();
-      const { data } = await supabase.from('categories').select('*').order('name');
+
+      const { data, error } = await supabase.from('categories').select('*').order('name');
+      console.log('categories:', data, error);
       setCategories(data || []);
     })();
   }, []);
@@ -46,7 +47,7 @@ const EventList = () => {
   useEffect(() => {
     let subscription: any;
     const fetchEvents = async () => {
-      const supabase = await getSupabaseClient();
+
       const { data, error } = await supabase.from('events').select('*');
       if (!error && data) {
         setEvents(data as Event[]);
@@ -65,7 +66,7 @@ const EventList = () => {
         .subscribe();
     };
     const fetchAttendees = async (events: Event[]) => {
-      const supabase = await getSupabaseClient();
+
       // Tüm etkinlikler için attendee sayılarını çek
       const { data: allAttendees, error } = await supabase.from('event_attendees').select('*');
       if (!error && allAttendees) {
@@ -96,7 +97,6 @@ const EventList = () => {
       toast({ title: "Giriş yapmalısınız", description: "Etkinliğe katılmak için giriş yapın.", variant: "destructive" });
       return;
     }
-    const supabase = await getSupabaseClient();
     const isAttending = userAttendingMap[eventId];
     if (isAttending) {
       // Katılımı bırak
