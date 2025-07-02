@@ -13,6 +13,12 @@ export interface Event {
   category?: string; 
 
   attendees: number; 
-  organizer: string;
+  organizer: {
+    name: string;
+    avatar?: string;
+  };
+
   isAttending?: boolean;
+  formattedDate?: string;
+  formattedTime?: string;
 }

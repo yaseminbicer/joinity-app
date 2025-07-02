@@ -6,10 +6,11 @@ interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
   onAuthSuccess: () => void;
+  initialTab?: 'login' | 'register';
 }
 
-const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuccess }) => {
-  const [isLogin, setIsLogin] = useState(true);
+const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuccess, initialTab }) => {
+  const [isLogin, setIsLogin] = useState(initialTab !== 'register');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -22,11 +23,12 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuccess })
       setEmail('');
       setPassword('');
       setError(null);
+      setIsLogin(initialTab !== 'register');
       setTimeout(() => {
         emailInputRef.current?.focus();
       }, 100);
     }
-  }, [isOpen, isLogin]);
+  }, [isOpen, initialTab]);
 
   if (!isOpen) return null;
 
@@ -43,9 +45,11 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuccess })
         const { error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
       }
-      onAuthSuccess();
+      console.log('CALLING onAuthSuccess');
+      await onAuthSuccess();
       onClose();
     } catch (err: any) {
+      console.log('LOGIN ERROR:', err);
       setError(err.message);
     } finally {
       setLoading(false);

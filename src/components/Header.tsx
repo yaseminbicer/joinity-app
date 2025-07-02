@@ -1,33 +1,19 @@
 
-import React, { useState, useEffect } from 'react';
-import { Calendar, User, Search, LogOut } from 'lucide-react';
+import React, { useState } from 'react';
+import { Calendar, User, Search, LogOut, Bell, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import AuthModal from '@/components/AuthModal';
-import { supabase } from '@/lib/supabaseClient';
 
-const Header = () => {
+interface HeaderProps {
+  currentUser: any;
+  onCreateEvent: () => void;
+  onLogout?: () => void;
+}
+
+const Header: React.FC<HeaderProps> = ({ currentUser, onCreateEvent, onLogout }) => {
   const [authModalOpen, setAuthModalOpen] = useState(false);
-  const [user, setUser] = useState<any>(null);
-
-  useEffect(() => {
-    let listener: any;
-    (async () => {
-
-      await supabase.auth.getSession().then(({ data }) => setUser(data.session?.user || null));
-      listener = supabase.auth.onAuthStateChange((_event, session) => {
-        setUser(session?.user || null);
-      });
-    })();
-    return () => {
-      if (listener && listener.subscription) listener.subscription.unsubscribe();
-    };
-  }, []);
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-  };
+  const [authModalTab, setAuthModalTab] = useState<'login' | 'register'>('login');
 
   return (
     <header className="bg-white/90 backdrop-blur-md border-b border-blue-100 sticky top-0 z-50">
@@ -55,21 +41,26 @@ const Header = () => {
             </div>
           </div>
 
-          {/* Auth Buttons */}
-          <div className="flex items-center space-x-4">
-            {user ? (
+          {/* Sağ üst alan */}
+          <div className="flex items-center gap-6">
+            {currentUser ? (
               <>
-                <span className="text-gray-700">{user.email}</span>
-                <Button variant="ghost" className="text-gray-700 hover:text-blue-600" onClick={handleLogout}>
-                  <LogOut className="mr-2 h-4 w-4" /> Çıkış Yap
+                <Button
+                  className="bg-gradient-to-r from-[#4fc3f7] to-[#a259f7] text-white font-medium shadow px-5 py-2 rounded-full flex items-center gap-2 text-base min-h-[40px] h-10 transition hover:opacity-90"
+                  onClick={onCreateEvent}
+                >
+                  <Plus className="w-5 h-5 mr-1" /> Etkinlik Oluştur
                 </Button>
+                <Bell className="w-5 h-5 text-black mx-2" />
+                <span className="font-normal text-base text-black mx-2">{currentUser.email}</span>
+                <User className="w-5 h-5 text-black mx-2" />
               </>
             ) : (
               <>
-                <Button variant="ghost" className="text-gray-700 hover:text-blue-600" onClick={() => setAuthModalOpen(true)}>
+                <Button variant="ghost" className="text-gray-700 hover:text-blue-600" onClick={() => { setAuthModalOpen(true); setAuthModalTab('login'); }}>
                   Giriş Yap
                 </Button>
-                <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-6" onClick={() => setAuthModalOpen(true)}>
+                <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-6" onClick={() => { setAuthModalOpen(true); setAuthModalTab('register'); }}>
                   <User className="mr-2 h-4 w-4" /> Kayıt Ol
                 </Button>
               </>
@@ -77,7 +68,8 @@ const Header = () => {
           </div>
         </div>
       </div>
-      <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} onAuthSuccess={() => {}} />
+      {/* Eğer AuthModal'da initialTab prop'u yoksa, eklenmesi gerekir! */}
+      <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} onAuthSuccess={() => {}} initialTab={authModalTab} />
     </header>
   );
 };

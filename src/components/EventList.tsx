@@ -21,7 +21,7 @@ const EventList = () => {
   const [sortBy, setSortBy] = useState<string>('date');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [attendeesMap, setAttendeesMap] = useState<Record<string, number>>({});
-  const [userAttendingMap, setUserAttendingMap] = useState<Record<string, boolean>>({});
+  const [userAttendingMap, setUserAttendingMap] = useState<Record<string, 'none' | 'pending' | 'approved' | 'rejected'>>({});
   const [user, setUser] = useState<any>(null);
 
   // Kategorileri çek
@@ -65,23 +65,35 @@ const EventList = () => {
         .subscribe();
     };
     const fetchAttendees = async (events: Event[]) => {
-
-      // Tüm etkinlikler için attendee sayılarını çek
-      const { data: allAttendees, error } = await supabase.from('event_attendees').select('*');
+      // Tüm etkinlikler için attendee sayılarını ve kullanıcı durumunu çek
+      const { data: allAttendees, error } = await supabase.from('event_attendees').select('*, user:user_id(id,email,avatar_url)');
       if (!error && allAttendees) {
         const map: Record<string, number> = {};
-        const userMap: Record<string, boolean> = {};
+        const userMap: Record<string, 'none' | 'pending' | 'approved' | 'rejected'> = {};
         events.forEach(event => {
+          if (!event.id) return;
           const attendees = allAttendees.filter((a: any) => a.event_id === event.id);
           map[event.id] = attendees.length;
           if (user && user.id) {
-            userMap[event.id] = attendees.some((a: any) => a.user_id === user.id);
+            const myAttendance = attendees.find((a: any) => a.user_id === user.id);
+            if (!myAttendance) {
+              userMap[event.id] = 'none';
+            } else if (myAttendance.status === 'pending') {
+              userMap[event.id] = 'pending';
+            } else if (myAttendance.status === 'approved') {
+              userMap[event.id] = 'approved';
+            } else if (myAttendance.status === 'rejected') {
+              userMap[event.id] = 'rejected';
+            } else {
+              userMap[event.id] = 'none';
+            }
           }
         });
         setAttendeesMap(map);
         setUserAttendingMap(userMap);
       }
     };
+
     fetchEvents();
     return () => {
       if (subscription) subscription.unsubscribe();
@@ -96,20 +108,20 @@ const EventList = () => {
       toast({ title: "Giriş yapmalısınız", description: "Etkinliğe katılmak için giriş yapın.", variant: "destructive" });
       return;
     }
-    const isAttending = userAttendingMap[eventId];
-    if (isAttending) {
-      // Katılımı bırak
+    const status = userAttendingMap[eventId];
+    if (status === 'approved' || status === 'pending') {
+      // Katılımı veya isteği bırak
       const { error } = await supabase.from('event_attendees').delete().match({ event_id: eventId, user_id: user.id });
       if (!error) {
-        toast({ title: "Katılım bırakıldı", description: "Etkinlikten ayrıldınız." });
+        toast({ title: "Katılım bırakıldı", description: "Etkinlikten ayrıldınız veya isteğiniz iptal edildi." });
       } else {
         toast({ title: "Hata", description: error.message, variant: "destructive" });
       }
     } else {
-      // Katıl
-      const { error } = await supabase.from('event_attendees').insert([{ event_id: eventId, user_id: user.id }]);
+      // Katılım isteği gönder
+      const { error } = await supabase.from('event_attendees').insert([{ event_id: eventId, user_id: user.id, status: 'pending' }]);
       if (!error) {
-        toast({ title: "Katıldınız", description: "Etkinliğe başarıyla katıldınız." });
+        toast({ title: "Katılım isteği gönderildi", description: "Onay bekleniyor." });
       } else {
         toast({ title: "Hata", description: error.message, variant: "destructive" });
       }
@@ -117,12 +129,23 @@ const EventList = () => {
     // Katılım değişti, attendee'ları tekrar yükle
     const { data: allAttendees } = await supabase.from('event_attendees').select('*');
     const map: Record<string, number> = {};
-    const userMap: Record<string, boolean> = {};
+    const userMap: Record<string, 'none' | 'pending' | 'approved' | 'rejected'> = {};
     events.forEach(event => {
       const attendees = (allAttendees || []).filter((a: any) => a.event_id === event.id);
       map[event.id] = attendees.length;
       if (user && user.id) {
-        userMap[event.id] = attendees.some((a: any) => a.user_id === user.id);
+        const myAttendance = attendees.find((a: any) => a.user_id === user.id);
+        if (!myAttendance) {
+          userMap[event.id] = 'none';
+        } else if (myAttendance.status === 'pending') {
+          userMap[event.id] = 'pending';
+        } else if (myAttendance.status === 'approved') {
+          userMap[event.id] = 'approved';
+        } else if (myAttendance.status === 'rejected') {
+          userMap[event.id] = 'rejected';
+        } else {
+          userMap[event.id] = 'none';
+        }
       }
     });
     setAttendeesMap(map);
@@ -278,7 +301,7 @@ const EventList = () => {
               key={event.id}
               event={event}
               attendees={attendeesMap[event.id] || 0}
-              isAttending={userAttendingMap[event.id] || false}
+              attendanceStatus={userAttendingMap[event.id] || 'none'}
               isAuth={!!user}
               onAttendToggle={handleAttendToggle}
             />
