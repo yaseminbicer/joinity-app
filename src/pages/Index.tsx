@@ -3,8 +3,11 @@ import React, { useState } from 'react';
 import Header from '@/components/Header';
 import EventList from '@/components/EventList';
 import CreateEventModal from '@/components/CreateEventModal';
-import { Calendar, MapPin, Users, Plus } from 'lucide-react';
+import { Calendar, Users, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Carousel } from '@/components/ui/carousel';
+import { ChartContainer } from '@/components/ui/chart';
+import { SidebarProvider } from '@/components/ui/sidebar';
 
 const Index = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -48,10 +51,7 @@ const Index = () => {
                   <Users className="h-5 w-5 mr-2" />
                   <span>2.5K+ Katılımcı</span>
                 </div>
-                <div className="flex items-center">
-                  <MapPin className="h-5 w-5 mr-2" />
-                  <span>25+ Şehir</span>
-                </div>
+
               </div>
             </div>
           </div>
@@ -61,7 +61,13 @@ const Index = () => {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <EventList key={refreshEvents} />
+        <SidebarProvider>
+          <Carousel>
+            <ChartContainer config={{}}>
+              <EventList key={refreshEvents} />
+            </ChartContainer>
+          </Carousel>
+        </SidebarProvider>
       </div>
 
       <CreateEventModal

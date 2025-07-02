@@ -9,7 +9,6 @@ import { toast } from '@/hooks/use-toast';
 import { getUser } from '@/utils/auth';
 import type { Event } from "../types/Event";
 import type { Category } from "../types/Category";
-import EventMap from './EventMap';
 
 const EventList = () => {
   const [events, setEvents] = useState<Event[]>([]);
@@ -178,8 +177,6 @@ const EventList = () => {
 
   return (
     <div className="space-y-8">
-      {/* Harita */}
-      <EventMap events={filteredEvents} userLocation={userLocation} />
       {/* Filters and Controls */}
       <div className="bg-white rounded-xl shadow-lg p-6">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">

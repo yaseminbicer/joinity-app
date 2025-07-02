@@ -74,11 +74,10 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onClose, on
     }
     try {
 
-      // Adresi koordinata çevir
       let location_lat = null;
       let location_lng = null;
       try {
-        const resp = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(formData.location)}.json?access_token=${process.env.NEXT_PUBLIC_MAPBOX_TOKEN}`);
+        const resp = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(formData.location)}.json?access_token=${import.meta.env.VITE_MAPBOX_TOKEN}`);
         const geo = await resp.json();
         if (geo.features && geo.features[0]) {
           location_lng = geo.features[0].center[0];
